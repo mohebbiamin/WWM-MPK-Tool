@@ -44,7 +44,7 @@ One portable Windows executable. Graphical interface **and** command line. Nothi
 
 ## Results on a real archive
 
-Measured on `LT11.mpk` from the current version (13.4 MB, 3,568 indexed files):
+Measured on `LT11.mpk` from the current version (8.95 MB, 3,568 indexed files):
 
 ```text
 extracted              3,586 files (3,568 indexed + 18 leftover blocks) in ~13 seconds

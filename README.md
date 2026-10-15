@@ -10,10 +10,13 @@ One portable Windows executable. Graphical interface **and** command line. Nothi
 
 > The game changed how its archives are indexed and started scrambling file paths on purpose, so old MPK extractors now output garbage or fail outright. This tool reads the current format, recovers the real file names and folder structure, and can pack everything back into a working archive for modding and localization work.
 
+---
+
 ## Preview
 <img width="1919" height="1019" alt="image" src="https://github.com/user-attachments/assets/a76e2a69-1a25-43b0-a7c5-408743e56123" />
 <img width="1919" height="1019" alt="image" src="https://github.com/user-attachments/assets/84f5f8ce-11b0-4768-8a75-ba1442b756f5" />
 
+---
 
 ## Contents
 
@@ -31,6 +34,8 @@ One portable Windows executable. Graphical interface **and** command line. Nothi
 - [Changelog](#changelog)
 - [Author & credits](#author--credits)
 
+---
+
 ## What it does
 
 - **Opens current-gen archives** — both base-game files and post-update patches (`LT*.mpk`, `Patch*.mpk`, `Resources.mpk`).
@@ -42,6 +47,8 @@ One portable Windows executable. Graphical interface **and** command line. Nothi
 - **Patch database viewer** — reads `Patch.mpkdb` and cross-references it with an archive index, so you can see which assets a specific update touched.
 - **Reports** — writes a machine-readable manifest plus a simple one-line-per-file text list you can open in Excel.
 - **Works without the archive too** — if you only have the index file, it opens in a read-only mode and tells you exactly what is missing.
+
+---
 
 ## Results on a real archive
 
@@ -58,6 +65,8 @@ audio found            0 - correct, this archive holds scripts only
 
 No data is lost and nothing is guessed: whatever the tool writes back is checked against the original before packing.
 
+---
+
 ## Download
 
 Get the pre-compiled executable from the **[Releases](https://github.com/mohebbiamin/WWM-MPK-Tool/releases)** page.
@@ -66,6 +75,8 @@ Get the pre-compiled executable from the **[Releases](https://github.com/mohebbi
 - **Requires:** Windows 10 or 11, 64-bit. No Python, no runtime, no installer.
 
 > Windows SmartScreen may warn about an unsigned download — the file simply isn't code-signed. Check the file size and version in its properties, and run it in a sandbox first if you prefer.
+
+---
 
 ## Using the window (GUI)
 
@@ -89,6 +100,10 @@ The matching `.mpkinfo` index must be in the **same folder** as the `.mpk`.
 
 The table shows each file's name, type, detected extension, size, location and whether its name was fully confirmed. Use the **Filter** box to narrow by name, content type or category, and tick **show un-indexed blocks** to also list leftover data the game no longer references.
 
+![About Info Window](screenshots/about.png)
+
+---
+
 ## Using the command line
 
 ```bash
@@ -111,6 +126,8 @@ wwm-mpk-tool.exe db Patch.mpkdb --join Resources.mpkinfo
 
 Handy options: `--orphans` (also recover leftover blocks), `--filter` (by name, type or extension), `--name-mode id` (name files by ID instead of path), `--limit`, `--json`, `--verbose`.
 
+---
+
 ## Modding: replace or add files
 
 ```bash
@@ -126,6 +143,8 @@ wwm-mpk-tool.exe rebuild LT11.mpk mymod -n MODDED.mpk
 
 The rebuild step regenerates the index automatically, reports how many files changed, and creates a matching index file next to the new archive. New files added to the folder are packed as extra entries.
 
+---
+
 ## About the `.lua` files
 
 They are **compiled game scripts**, not plain text — that is normal and expected.
@@ -135,11 +154,15 @@ They are **compiled game scripts**, not plain text — that is normal and expect
 - To read or edit the logic you need a Lua 5.4 decompiler. Be aware that this game's compiler writes a slightly non-standard header, so some off-the-shelf decompilers complain before they even start.
 - If you just want to know whether extraction went well, run **Check Lua integrity** — it tells you how many files are structurally valid.
 
+---
+
 ## About audio and music
 
 Music and voice are **not** inside the script archives (`LT*.mpk`). They live in the asset containers — `Resources.mpk` and the asset patch archives.
 
 Use **Scan for audio** on a file to see immediately whether it contains audio, and how many streams. On a script archive it will honestly report *no audio data here* instead of inventing hits.
+
+---
 
 ## FAQ
 
@@ -158,6 +181,8 @@ No. It is offline, reads files you point it at, and writes only where you tell i
 **Will it break my game files?**  
 It never modifies the archive you open; rebuilding always writes new files. Still keep a backup copy of anything you plan to replace in the game folder.
 
+---
+
 ## Release model
 
 This is a **binary-only release**. The executable is the product: it is self-contained, needs no runtime and works on a clean Windows 10/11 x64 install.
@@ -168,13 +193,17 @@ The internal format research behind it — how the archives are indexed, how nam
 - Source is not published. If you have a legitimate need for it (integration, audit, learning), ask on Telegram first rather than opening a request here.
 - The tool is free to use, redistribute **as the unmodified executable**, and credit where it helps.
 
+---
+
 ## Files in this repository
 
 ```text
 wwm-mpk-tool.exe            the program - run this
 README.md                   this documentation
-LICENSE                     MIT License
+screenshots/                interface preview images
 ```
+
+---
 
 ## Changelog
 
@@ -191,6 +220,8 @@ LICENSE                     MIT License
 - About window with version and contact links; the same information is embedded in the exe's file properties
 - Byte-exact round trip verified (extract → rebuild produces a file identical to the original)
 - Application icon and Windows file properties
+
+---
 
 ## Author & credits
 

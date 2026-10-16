@@ -4,9 +4,9 @@
 
 One portable Windows executable. Graphical interface **and** command line. Nothing to install.
 
-![version](https://img.shields.io/badge/version-1.0.0-blue)
-![platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-informational)
 [![version](https://img.shields.io/github/v/release/mohebbiamin/WWM-MPK-Tool?sort=semver)](https://github.com/mohebbiamin/WWM-MPK-Tool/releases)
+![platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-informational)
+![deps](https://img.shields.io/badge/runtime%20dependencies-none-brightgreen)
 
 > The game changed how its archives are indexed and started scrambling file paths on purpose, so old MPK extractors now output garbage or fail outright. This tool reads the current format, recovers the real file names and folder structure, and can pack everything back into a working archive for modding and localization work.
 
@@ -22,6 +22,7 @@ One portable Windows executable. Graphical interface **and** command line. Nothi
 - [Download](#download)
 - [Using the window (GUI)](#using-the-window-gui)
 - [Using the command line](#using-the-command-line)
+- [Which archives need which mode](#which-archives-need-which-mode)
 - [Modding: replace or add files](#modding-replace-or-add-files)
 - [About the `.lua` files](#about-the-lua-files)
 - [About audio and music](#about-audio-and-music)
@@ -32,7 +33,8 @@ One portable Windows executable. Graphical interface **and** command line. Nothi
 
 ## What it does
 
-- **Opens current-gen archives** — both base-game files and post-update patches (`LT*.mpk`, `Patch*.mpk`, `Resources.mpk`).
+- **Opens current-gen archives** — both base-game files and post-update patches (`LT*.mpk`, `Resources.mpk`).
+- **Opens patch containers too** — `Patch##.mpk` files ship **no index at all**; Probe and Carve modes handle those (see [Which archives need which mode](#which-archives-need-which-mode)).
 - **Real file names, real folders** — reconstructs the original directory tree instead of dumping numbered `.bin` files.
 - **Correct extensions** — identifies content by looking inside each file (audio, banks, textures, fonts, videos, archives…), so you get `.lua`, `.wem`, `.bnk`, `.png`, `.dds`, `.ttf`, `.ogg` and so on instead of unknown blobs.
 - **Audio scanner** — walks the whole archive and reports which audio streams are actually inside, and how many.
@@ -44,13 +46,13 @@ One portable Windows executable. Graphical interface **and** command line. Nothi
 
 ## Results on a real archive
 
-Measured on `LT11.mpk` from the current version (8.95 MB, 3,568 indexed files):
+Measured on `LT11.mpk` from the current version (13.4 MB archive, 3,568 indexed files):
 
 ```text
 extracted              3,586 files (3,568 indexed + 18 leftover blocks) in ~13 seconds
 byte-for-byte verify   3,586 compared, 0 differences
 rebuild round trip     rebuilt archive is identical to the original, byte for byte
-file names recovered   3,209 fully confirmed (90%), the rest with visible gaps
+file names recovered   3,208 fully confirmed (90%), the rest with visible gaps
 integrity check        3,568 / 3,568 files structurally valid
 audio found            0 - correct, this archive holds scripts only
 ```
@@ -61,8 +63,12 @@ No data is lost and nothing is guessed: whatever the tool writes back is checked
 
 Get the pre-compiled executable from the **[Releases](https://github.com/mohebbiamin/WWM-MPK-Tool/releases)** page.
 
-- **File:** `wwm-mpk-tool.exe` (~12.9 MB, single file)
+- **File:** `wwm-mpk-tool.exe` (~9 MB, single file)
 - **Requires:** Windows 10 or 11, 64-bit. No Python, no runtime, no installer.
+
+| Version | Size | SHA-256 |
+|---|---|---|
+| v1.0.1 | 9,421,824 bytes (8.99 MB) | `da8128f41683635daf3e10e82f278c2b5136610cd58b55a74852e9b1b8123c44` |
 
 > Windows SmartScreen may warn about an unsigned download — the file simply isn't code-signed. Check the file size and version in its properties, and run it in a sandbox first if you prefer.
 
@@ -74,7 +80,7 @@ Double-click **`wwm-mpk-tool.exe`**. Three ways to load an archive:
 2. Type or paste the path into the **MPK** box and press **Enter**.
 3. Click **Open…** (or press **Ctrl+O**).
 
-The matching `.mpkinfo` index must be in the **same folder** as the `.mpk`.
+The matching `.mpkinfo` index must be in the **same folder** as the `.mpk` — except for patch archives, which have none; use **Probe / Carve** for those.
 
 | Button | What it does |
 |---|---|
@@ -84,7 +90,8 @@ The matching `.mpkinfo` index must be in the **same folder** as the `.mpk`.
 | **Scan for audio** | reports every audio stream actually present in the file |
 | **Check Lua integrity** | confirms the script files were extracted correctly |
 | **Open Patch.mpkdb** | loads the patch database and cross-references it with the open archive |
-| **About / Info** | version, author, contact links and technical documentation |
+| **Probe / Carve (no index)** | opens archives that ship without an index (patch files): diagnose first, then extract what is inside |
+| **About / Info** | version, author, contact links and a summary of what the tool supports |
 
 The table shows each file's name, type, detected extension, size, location and whether its name was fully confirmed. Use the **Filter** box to narrow by name, content type or category, and tick **show un-indexed blocks** to also list leftover data the game no longer references.
 
@@ -106,9 +113,34 @@ wwm-mpk-tool.exe rebuild  LT11.mpk out -n MODDED.mpk
 wwm-mpk-tool.exe scanaudio Resources.mpk    # audio inventory of a file
 wwm-mpk-tool.exe checklua  LT11.mpk         # structural validity of the scripts
 wwm-mpk-tool.exe db Patch.mpkdb --join Resources.mpkinfo
+
+wwm-mpk-tool.exe probe  Patch10.mpk         # works WITHOUT an index - diagnostics
+wwm-mpk-tool.exe carve  Patch10.mpk -o out  # extract blocks when no index exists
 ```
 
 Handy options: `--orphans` (also recover leftover blocks), `--filter` (by name, type or extension), `--name-mode id` (name files by ID instead of path), `--limit`, `--json`, `--verbose`.
+
+## Which archives need which mode
+
+| Archive | Has an index? | How to open it |
+|---|---|---|
+| `LT##.mpk` (script / logic patches) | yes — `LT##.mpkinfo` beside it | normal **Open / extract** |
+| `Resources.mpk` and other asset archives | yes — a `.mpkinfo` beside it | normal **Open / extract** |
+| `Patch##.mpk` in `LocalData\Patch\` | **no `.mpkinfo` at all** | use **Probe / Carve (no index)** |
+| `Patch.mpkdb` | it *is* the database | **Open Patch.mpkdb** or the `db` command |
+
+A patch archive is a delta container: the game resolves its contents through the patch database, so it never ships a per-file `.mpkinfo`. Opening one the normal way gives *"No .mpkinfo index found next to…"* — that message is correct, and this is the way through:
+
+```bash
+wwm-mpk-tool.exe probe  G:\Games\WWM\LocalData\Patch\Patch10.mpk
+wwm-mpk-tool.exe carve  G:\Games\WWM\LocalData\Patch\Patch10.mpk -o patch10_out
+```
+
+**What probe tells you:** file size, first/last bytes, whether a side or embedded index exists, how many real content blocks the scanner finds, what percentage of the file they cover, and a breakdown of content types (scripts / audio / textures / unknown). If a file is not a `.mpk` at all, probe says so instead of pretending.
+
+**What carve gives you:** every content block it can find, unpacked with the right extension and — where the data carries its own path — the real file name and folder tree. Verified against a fully indexed archive: **3,586 blocks found, 3,586 files written, 100% of the file covered, every payload byte-identical to the index-based extraction.**
+
+**Honest limit of carve:** it works without the index, so it cannot know the game's own file IDs — which means it can **extract but not rebuild**. Anything it names `carve_…` had no readable internal path.
 
 ## Modding: replace or add files
 
@@ -142,6 +174,9 @@ Use **Scan for audio** on a file to see immediately whether it contains audio, a
 
 ## FAQ
 
+**I get "No .mpkinfo index found next to Patch10.mpk".**  
+That is expected: patch archives do not ship an index at all. Use **Probe / Carve (no index)** in the window, or `probe` followed by `carve` on the command line. See [Which archives need which mode](#which-archives-need-which-mode).
+
 **The tool says the container is missing.**  
 You opened an index without its archive. Put the matching `.mpk` next to the `.mpkinfo` and press **Reload** — or continue in read-only mode to just browse the file list.
 
@@ -169,7 +204,16 @@ The internal format research behind it — how the archives are indexed, how nam
 
 ## Changelog
 
-### v1.0
+### v1.0.1
+- **Probe mode** — diagnose any archive without needing its index: layout summary, whether a side or embedded index exists, how many real content blocks are present, what share of the file they cover, and a breakdown of content types
+- **Carve mode** — extract those blocks anyway, with correct extensions and real paths where the data carries them. This is the answer for `Patch##.mpk` files in `LocalData\Patch\`, which ship no index and previously could not be opened
+- Both are available on the CLI (`probe` / `carve`) and in the window as **Probe / Carve (no index)**
+- **Fixed:** carving no longer overwrites a file when two blocks share the same path — duplicates are suffixed instead of silently lost
+- **Fixed:** the "no index found" message now explains which archives have no index and what to do instead
+- Smarter name recovery from an extra length marker the game stores per file
+- Native compiled build: smaller download (8.99 MB, was 12.9 MB) and no Python bytecode shipped
+
+### v1.0.0
 - Supports the current (post-update) archive and index format
 - Real file and folder names recovered, with per-file confidence marking
 - Content detection by inspecting each file, so extensions are correct
@@ -178,6 +222,7 @@ The internal format research behind it — how the archives are indexed, how nam
 - Rebuilder with automatic index regeneration and change reporting
 - Patch-database viewer with cross-referencing against any archive index
 - Read-only mode when only an index file is available
+- Crash fixes: loading an archive, rapid button spam, closing the window during a scan, and clean one-line messages instead of raw tracebacks
 - Drag & drop, Enter-to-load, Ctrl+O
 - About window with version and contact links; the same information is embedded in the exe's file properties
 - Byte-exact round trip verified (extract → rebuild produces a file identical to the original)
